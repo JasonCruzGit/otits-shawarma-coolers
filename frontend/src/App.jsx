@@ -432,13 +432,13 @@ function App() {
   return (
     <main className="app-shell">
       <header className="topbar">
-        <div>
+      <div>
           <h1>Otit&apos;s POS</h1>
           <p>
             {user?.fullName} ({user?.role}) |{" "}
             {branches.find((b) => b.id === selectedBranch)?.name || "No branch selected"}
-          </p>
-        </div>
+        </p>
+      </div>
         <div className="topbar-controls">
           <label className="theme-switch" title="Toggle light or dark mode">
             <input
