@@ -1,0 +1,20 @@
+version: "3.9"
+services:
+  api:
+    build: ./backend
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - JWT_SECRET=otits-prod-secret-change-me
+    volumes:
+      - ./backend/data:/app/data
+
+  web:
+    build: ./frontend
+    ports:
+      - "5173:80"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:4000/api
+    depends_on:
+      - api

@@ -1,0 +1,11 @@
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.env
+**/.env
+*.log
+.DS_Store
+
+# Local backend runtime data
+backend/data/

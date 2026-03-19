@@ -1,0 +1,30 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "Otit's POS API",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "nodemon --ignore data --ignore data/** src/index.js",
+    "start": "node src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "csv-stringify": "^6.7.0",
+    "dayjs": "^1.11.20",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "lowdb": "^7.0.1",
+    "morgan": "^1.10.1",
+    "nanoid": "^5.1.7",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
