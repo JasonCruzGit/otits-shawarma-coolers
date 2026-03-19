@@ -1,0 +1,266 @@
+{
+  "branches": [
+    {
+      "id": "branch-rizal",
+      "name": "Otit's Rizal Ave Branch",
+      "isActive": true
+    },
+    {
+      "id": "branch-ppia",
+      "name": "Otit's PPIA Branch",
+      "isActive": true
+    }
+  ],
+  "categories": [
+    {
+      "id": "cat-shawarma",
+      "name": "Shawarma"
+    },
+    {
+      "id": "cat-coolers",
+      "name": "Coolers"
+    },
+    {
+      "id": "cat-addons",
+      "name": "Add-ons"
+    }
+  ],
+  "products": [
+    {
+      "id": "prod-chicken-wrap",
+      "name": "Chicken Shawarma Wrap",
+      "categoryId": "cat-shawarma",
+      "price": 89,
+      "isActive": true,
+      "recipe": [
+        {
+          "inventoryItemId": "inv-pita",
+          "qtyPerUnit": 1
+        },
+        {
+          "inventoryItemId": "inv-chicken",
+          "qtyPerUnit": 120
+        }
+      ]
+    },
+    {
+      "id": "prod-beef-wrap",
+      "name": "Beef Shawarma Wrap",
+      "categoryId": "cat-shawarma",
+      "price": 99,
+      "isActive": true,
+      "recipe": [
+        {
+          "inventoryItemId": "inv-pita",
+          "qtyPerUnit": 1
+        },
+        {
+          "inventoryItemId": "inv-beef",
+          "qtyPerUnit": 130
+        }
+      ]
+    },
+    {
+      "id": "prod-cucumber-cooler",
+      "name": "Cucumber Cooler",
+      "categoryId": "cat-coolers",
+      "price": 55,
+      "isActive": true,
+      "recipe": [
+        {
+          "inventoryItemId": "inv-cucumber-syrup",
+          "qtyPerUnit": 30
+        }
+      ]
+    },
+    {
+      "id": "prod-extra-cheese",
+      "name": "Extra Cheese",
+      "categoryId": "cat-addons",
+      "price": 15,
+      "isActive": true,
+      "recipe": [
+        {
+          "inventoryItemId": "inv-cheese",
+          "qtyPerUnit": 20
+        }
+      ]
+    }
+  ],
+  "inventoryByBranch": [
+    {
+      "branchId": "branch-rizal",
+      "items": [
+        {
+          "id": "inv-pita",
+          "name": "Pita Bread",
+          "uom": "pcs",
+          "qty": 199,
+          "lowStockThreshold": 40
+        },
+        {
+          "id": "inv-chicken",
+          "name": "Chicken Meat",
+          "uom": "grams",
+          "qty": 12000,
+          "lowStockThreshold": 2500
+        },
+        {
+          "id": "inv-beef",
+          "name": "Beef Meat",
+          "uom": "grams",
+          "qty": 8870,
+          "lowStockThreshold": 2000
+        },
+        {
+          "id": "inv-cucumber-syrup",
+          "name": "Cucumber Syrup",
+          "uom": "ml",
+          "qty": 6970,
+          "lowStockThreshold": 1200
+        },
+        {
+          "id": "inv-cheese",
+          "name": "Cheese",
+          "uom": "grams",
+          "qty": 3000,
+          "lowStockThreshold": 600
+        }
+      ]
+    },
+    {
+      "branchId": "branch-ppia",
+      "items": [
+        {
+          "id": "inv-pita",
+          "name": "Pita Bread",
+          "uom": "pcs",
+          "qty": 200,
+          "lowStockThreshold": 40
+        },
+        {
+          "id": "inv-chicken",
+          "name": "Chicken Meat",
+          "uom": "grams",
+          "qty": 12000,
+          "lowStockThreshold": 2500
+        },
+        {
+          "id": "inv-beef",
+          "name": "Beef Meat",
+          "uom": "grams",
+          "qty": 9000,
+          "lowStockThreshold": 2000
+        },
+        {
+          "id": "inv-cucumber-syrup",
+          "name": "Cucumber Syrup",
+          "uom": "ml",
+          "qty": 7000,
+          "lowStockThreshold": 1200
+        },
+        {
+          "id": "inv-cheese",
+          "name": "Cheese",
+          "uom": "grams",
+          "qty": 3000,
+          "lowStockThreshold": 600
+        }
+      ]
+    }
+  ],
+  "orders": [
+    {
+      "id": "ord-SlLMf1YJsuct",
+      "receiptNo": "OT-20260319-23788",
+      "branchId": "branch-rizal",
+      "items": [
+        {
+          "productId": "prod-beef-wrap",
+          "productName": "Beef Shawarma Wrap",
+          "qty": 1,
+          "unitPrice": 99,
+          "addOns": [],
+          "lineTotal": 99
+        },
+        {
+          "productId": "prod-cucumber-cooler",
+          "productName": "Cucumber Cooler",
+          "qty": 1,
+          "unitPrice": 55,
+          "addOns": [],
+          "lineTotal": 55
+        }
+      ],
+      "subtotal": 154,
+      "addonsTotal": 0,
+      "total": 154,
+      "paymentType": "cash",
+      "receivedAmount": 200,
+      "changeAmount": 46,
+      "customerName": "Walk-in",
+      "isSynced": false,
+      "createdBy": "user-admin",
+      "createdAt": "2026-03-19T07:04:21.224Z"
+    }
+  ],
+  "users": [
+    {
+      "id": "user-admin",
+      "fullName": "System Admin",
+      "username": "admin",
+      "passwordHash": "$2b$10$rpVG4GV7I5Q8fWg9.nnqTegpoWZ7jPce8Gb8Eio84bccVwkYXf8py",
+      "role": "admin",
+      "branchId": null,
+      "isActive": true
+    },
+    {
+      "id": "user-manager-rizal",
+      "fullName": "Rizal Manager",
+      "username": "rizal.manager",
+      "passwordHash": "$2b$10$o7bo/n9trQCHLDg4w5P.buKleFi7FQAz8B1Mw7qLAwj8Q/9jYbIvq",
+      "role": "manager",
+      "branchId": "branch-rizal",
+      "isActive": true
+    },
+    {
+      "id": "user-cashier-ppia",
+      "fullName": "PPIA Cashier",
+      "username": "ppia.cashier",
+      "passwordHash": "$2b$10$KtyvD91SCFgPCymJ9wbwNuoqvRSCn1R3JCjrAtdiU0y7zeiTwmYWe",
+      "role": "cashier",
+      "branchId": "branch-ppia",
+      "isActive": true
+    }
+  ],
+  "inventoryLogs": [
+    {
+      "id": "log-4ejcX5VrlD",
+      "branchId": "branch-rizal",
+      "inventoryItemId": "inv-pita",
+      "qtyDelta": -1,
+      "reason": "Auto-deduct from sale",
+      "actorUserId": "user-admin",
+      "at": "2026-03-19T07:04:21.224Z"
+    },
+    {
+      "id": "log-YiUevupwdM",
+      "branchId": "branch-rizal",
+      "inventoryItemId": "inv-beef",
+      "qtyDelta": -130,
+      "reason": "Auto-deduct from sale",
+      "actorUserId": "user-admin",
+      "at": "2026-03-19T07:04:21.224Z"
+    },
+    {
+      "id": "log-5lWpavJRvY",
+      "branchId": "branch-rizal",
+      "inventoryItemId": "inv-cucumber-syrup",
+      "qtyDelta": -30,
+      "reason": "Auto-deduct from sale",
+      "actorUserId": "user-admin",
+      "at": "2026-03-19T07:04:21.224Z"
+    }
+  ],
+  "stockTransfers": []
+}
