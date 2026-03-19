@@ -40,33 +40,58 @@ Full-featured multi-branch Point of Sale system with sales and inventory monitor
 ## Tech Stack
 
 - Frontend: React + Vite
-- Backend: Node.js + Express
-- Persistence: LowDB JSON file storage (`backend/data/db.json`)
+- Backend: **Plain PHP** (compatible with shared hosting — no Node.js required)
+- Persistence: JSON file storage (`api/data/db.json`, auto-created on first request)
 - Charts: Recharts
+
+## Hostinger Deployment (Shared Hosting)
+
+Upload the following to your `public_html/` directory:
+
+```
+public_html/
+  .htaccess          ← from project root
+  index.html         ← from frontend/dist/
+  assets/            ← from frontend/dist/assets/
+  api/
+    .htaccess
+    index.php
+    helpers.php
+    data/
+      .htaccess      ← protects db.json from direct web access
+```
+
+Steps:
+
+1. Build the frontend locally: `cd frontend && npm run build`
+2. Upload `frontend/dist/*` (index.html, assets/) into `public_html/`
+3. Upload the root `.htaccess` into `public_html/`
+4. Upload the entire `api/` folder into `public_html/api/`
+5. Make sure `public_html/api/data/` directory exists and is writable (chmod 755 or 775)
+6. Visit your domain — the database seeds automatically on first request
 
 ## Quick Start (Local)
 
-### 1) Backend
-
-```bash
-cd backend
-cp .env.example .env
-npm install
-npm run dev
-```
-
-Runs at `http://localhost:4000`.
-
-### 2) Frontend
+### Frontend
 
 ```bash
 cd frontend
-cp .env.example .env
 npm install
 npm run dev
 ```
 
 Runs at `http://localhost:5173`.
+
+### Backend (PHP)
+
+If you have PHP installed locally:
+
+```bash
+cd api
+php -S localhost:4000 index.php
+```
+
+Or set `VITE_API_BASE_URL=http://localhost:4000` in `frontend/.env`.
 
 ## Default Login Accounts
 
@@ -82,6 +107,9 @@ Runs at `http://localhost:5173`.
 - Branch / Catalog
   - `GET /api/branches`
   - `GET /api/catalog`
+- Products
+  - `POST /api/products`
+  - `PATCH /api/products/:id`
 - POS / Orders
   - `POST /api/orders`
   - `GET /api/orders`
@@ -103,10 +131,11 @@ Runs at `http://localhost:5173`.
 - System
   - `GET /api/system/backup`
   - `POST /api/system/restore`
+  - `GET /api/health`
 
 ## Database Structure
 
-Primary collections in `backend/data/db.json`:
+Primary collections in `api/data/db.json` (auto-created):
 
 - `branches`
 - `categories`
@@ -116,20 +145,3 @@ Primary collections in `backend/data/db.json`:
 - `users`
 - `inventoryLogs`
 - `stockTransfers`
-
-## Deployment (Docker Compose)
-
-From project root:
-
-```bash
-docker compose up --build
-```
-
-- Frontend: `http://localhost:5173`
-- Backend API: `http://localhost:4000`
-
-## Notes
-
-- Profit estimation can be added by introducing ingredient costs and COGS calculations per order.
-- Offline sync is included via `/api/sync/offline-orders`.
-- For production cloud deployments, migrate persistence to PostgreSQL/MySQL while preserving endpoint contracts.

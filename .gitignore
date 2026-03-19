@@ -9,3 +9,6 @@ dist/
 
 # Local backend runtime data
 backend/data/
+
+# PHP backend runtime data (auto-created on first request)
+api/data/db.json
