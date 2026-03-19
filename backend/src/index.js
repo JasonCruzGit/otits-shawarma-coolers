@@ -256,8 +256,18 @@ function summarizeOrders(orders) {
   return { totalSales, transactionCount, bestSellingItems };
 }
 
+const ALLOWED_ORIGINS = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(",").map((o) => o.trim())
+  : undefined;
+
 const app = express();
-app.use(cors());
+app.use(
+  cors(
+    ALLOWED_ORIGINS
+      ? { origin: ALLOWED_ORIGINS, credentials: true }
+      : undefined
+  )
+);
 app.use(express.json({ limit: "5mb" }));
 app.use(morgan("dev"));
 
