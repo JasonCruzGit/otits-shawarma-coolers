@@ -462,6 +462,38 @@ button:disabled {
   font-weight: 700;
 }
 
+.product-btn.has-variants {
+  cursor: default;
+}
+
+.variant-list {
+  display: grid;
+  width: 100%;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.variant-btn {
+  width: 100%;
+  text-align: left;
+  border: 1px solid rgba(212, 175, 76, 0.26);
+  border-radius: 8px;
+  background: rgba(17, 14, 10, 0.84);
+  color: var(--text-main);
+  padding: 8px 10px;
+  font-size: 0.84rem;
+}
+
+.variant-btn:hover {
+  border-color: rgba(212, 175, 76, 0.52);
+}
+
+[data-theme="light"] .variant-btn {
+  background: rgba(255, 255, 255, 0.95);
+  color: #2f2410;
+  border-color: rgba(142, 110, 52, 0.3);
+}
+
 .cart-list {
   display: grid;
   gap: 8px;

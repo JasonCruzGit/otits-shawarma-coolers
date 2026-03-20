@@ -131,7 +131,8 @@ function App() {
     name: "",
     categoryId: "",
     price: "",
-    recipeText: "",
+    sizesText: "",
+    variantsText: "",
   });
 
   const cartTotal = useMemo(() => cart.reduce((sum, line) => sum + line.price * line.qty, 0), [cart]);
@@ -244,20 +245,74 @@ function App() {
     setCart([]);
   }
 
-  function addToCart(product) {
+  function priceForOption(product, size, variant) {
+    let unitPrice = Number(product.price || 0);
+    if (size) unitPrice = Number(size.price ?? unitPrice);
+    if (variant) {
+      if (Number.isFinite(Number(variant.priceDelta))) {
+        unitPrice += Number(variant.priceDelta);
+      } else if (!size && Number.isFinite(Number(variant.price))) {
+        // Backward compatibility for older data where variant.price was absolute.
+        unitPrice = Number(variant.price);
+      }
+    }
+    return unitPrice;
+  }
+
+  function buildProductOptions(product) {
+    const sizes = product.sizes?.length ? product.sizes : [null];
+    const variants = product.variants?.length ? product.variants : [null];
+    const options = [];
+    for (const size of sizes) {
+      for (const variant of variants) {
+        const labelParts = [];
+        if (size?.name) labelParts.push(size.name);
+        if (variant?.name) labelParts.push(variant.name);
+        options.push({
+          size,
+          variant,
+          label: labelParts.join(" / ") || "Default",
+          price: priceForOption(product, size, variant),
+        });
+      }
+    }
+    return options;
+  }
+
+  function addToCart(product, option = {}) {
+    const size = option.size || null;
+    const variant = option.variant || null;
+    const lineId = `${product.id}::${size?.id || "nosize"}::${variant?.id || "novariant"}`;
+    const detailParts = [size?.name, variant?.name].filter(Boolean);
+    const lineName = detailParts.length ? `${product.name} (${detailParts.join(" / ")})` : product.name;
+    const linePrice = Number(option.price ?? priceForOption(product, size, variant));
+
     setCart((prev) => {
-      const hit = prev.find((line) => line.productId === product.id);
-      if (hit) return prev.map((line) => (line.productId === product.id ? { ...line, qty: line.qty + 1 } : line));
-      return [...prev, { productId: product.id, name: product.name, price: product.price, qty: 1 }];
+      const hit = prev.find((line) => line.lineId === lineId);
+      if (hit) return prev.map((line) => (line.lineId === lineId ? { ...line, qty: line.qty + 1 } : line));
+      return [
+        ...prev,
+        {
+          lineId,
+          productId: product.id,
+          sizeId: size?.id || null,
+          sizeName: size?.name || null,
+          variantId: variant?.id || null,
+          variantName: variant?.name || null,
+          name: lineName,
+          price: linePrice,
+          qty: 1,
+        },
+      ];
     });
   }
 
-  function updateCartQty(productId, qty) {
+  function updateCartQty(lineId, qty) {
     if (qty < 1) {
-      setCart((prev) => prev.filter((line) => line.productId !== productId));
+      setCart((prev) => prev.filter((line) => line.lineId !== lineId));
       return;
     }
-    setCart((prev) => prev.map((line) => (line.productId === productId ? { ...line, qty } : line)));
+    setCart((prev) => prev.map((line) => (line.lineId === lineId ? { ...line, qty } : line)));
   }
 
   async function checkout() {
@@ -265,7 +320,12 @@ function App() {
     try {
       const payload = {
         branchId: selectedBranch,
-        items: cart.map((line) => ({ productId: line.productId, qty: line.qty })),
+        items: cart.map((line) => ({
+          productId: line.productId,
+          qty: line.qty,
+          sizeId: line.sizeId,
+          variantId: line.variantId,
+        })),
         paymentType,
         receivedAmount: paymentType === "cash" ? Number(receivedAmount || cartTotal) : cartTotal,
       };
@@ -330,21 +390,39 @@ function App() {
     e.preventDefault();
     try {
       setCreatingProduct(true);
-      const recipe = productForm.recipeText
+      const sizes = productForm.sizesText
         .split(",")
         .map((chunk) => chunk.trim())
         .filter(Boolean)
         .map((item) => {
-          const [inventoryItemId, qtyRaw] = item.split(":").map((v) => v.trim());
-          return { inventoryItemId, qtyPerUnit: Number(qtyRaw) };
+          const [name, priceRaw] = item.split(":").map((v) => v.trim());
+          return {
+            id: `size-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "option"}`,
+            name,
+            price: Number(priceRaw),
+          };
         })
-        .filter((entry) => entry.inventoryItemId && Number(entry.qtyPerUnit) > 0);
+        .filter((entry) => entry.name && Number(entry.price) > 0);
+      const variants = productForm.variantsText
+        .split(",")
+        .map((chunk) => chunk.trim())
+        .filter(Boolean)
+        .map((item) => {
+          const [name, priceRaw] = item.split(":").map((v) => v.trim());
+          return {
+            id: `var-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "option"}`,
+            name,
+            priceDelta: Number(priceRaw),
+          };
+        })
+        .filter((entry) => entry.name && Number.isFinite(entry.priceDelta));
 
       await api.post("/products", {
         name: productForm.name.trim(),
         categoryId: productForm.categoryId,
         price: Number(productForm.price),
-        recipe,
+        sizes,
+        variants,
       });
 
       const catalogRes = await api.get("/catalog");
@@ -354,7 +432,8 @@ function App() {
         ...prev,
         name: "",
         price: "",
-        recipeText: "",
+        sizesText: "",
+        variantsText: "",
       }));
       setMessage("New product added to POS menu.");
     } catch (error) {
@@ -487,13 +566,29 @@ function App() {
                   <span>{category.items.length} items</span>
                 </div>
                 <div className="product-grid">
-                  {category.items.map((product) => (
-                    <button key={product.id} className="product-btn" onClick={() => addToCart(product)}>
-                      <strong>{product.name}</strong>
-                      <small>Tap to add</small>
-                      <span>{peso(product.price)}</span>
-                    </button>
-                  ))}
+                  {category.items.map((product) => {
+                    const options = buildProductOptions(product);
+                    const hasDetails = (product.sizes?.length || 0) > 0 || (product.variants?.length || 0) > 0;
+                    return (
+                      <div key={product.id} className={`product-btn ${hasDetails ? "has-variants" : ""}`}>
+                        <strong>{product.name}</strong>
+                        <small>{hasDetails ? "Choose size / variant" : "Tap to add"}</small>
+                        <span>{peso(product.price)}</span>
+                        <div className="variant-list">
+                          {options.map((option, index) => (
+                            <button
+                              key={`${product.id}-${option.size?.id || "nosize"}-${option.variant?.id || "novariant"}-${index}`}
+                              type="button"
+                              className="variant-btn"
+                              onClick={() => addToCart(product, option)}
+                            >
+                              {option.label} - {peso(option.price)}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             ))}
@@ -507,13 +602,13 @@ function App() {
             <div className="cart-list">
               {!!cart.length && <div className="cart-header"><span>Item</span><span>Qty</span><span>Amount</span></div>}
               {cart.map((line) => (
-                <div key={line.productId} className="cart-row">
+                <div key={line.lineId} className="cart-row">
                   <span>{line.name}</span>
                   <div>
-                    <button onClick={() => updateCartQty(line.productId, line.qty - 1)}>-</button>
+                    <button onClick={() => updateCartQty(line.lineId, line.qty - 1)}>-</button>
                     <b>{line.qty}</b>
-                    <button onClick={() => updateCartQty(line.productId, line.qty + 1)}>+</button>
-                    <button className="icon-remove" onClick={() => updateCartQty(line.productId, 0)}>
+                    <button onClick={() => updateCartQty(line.lineId, line.qty + 1)}>+</button>
+                    <button className="icon-remove" onClick={() => updateCartQty(line.lineId, 0)}>
                       x
                     </button>
                   </div>
@@ -869,11 +964,19 @@ function App() {
                 </label>
 
                 <label>
-                  Recipe (Optional)
+                  Item Sizes (Optional)
                   <input
-                    placeholder="inv-pita:1, inv-chicken:120"
-                    value={productForm.recipeText}
-                    onChange={(e) => setProductForm((prev) => ({ ...prev, recipeText: e.target.value }))}
+                    placeholder="Small:79, Regular:89, Large:109"
+                    value={productForm.sizesText}
+                    onChange={(e) => setProductForm((prev) => ({ ...prev, sizesText: e.target.value }))}
+                  />
+                </label>
+                <label>
+                  Variants (Optional)
+                  <input
+                    placeholder="Spicy:0, Cheese:15"
+                    value={productForm.variantsText}
+                    onChange={(e) => setProductForm((prev) => ({ ...prev, variantsText: e.target.value }))}
                   />
                 </label>
               </div>

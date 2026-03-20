@@ -76,6 +76,15 @@ if ($uri === '/products' && $method === 'POST') {
         'price' => (float)$body['price'],
         'isActive' => true,
         'recipe' => $body['recipe'] ?? [],
+        'sizes' => array_values(array_filter($body['sizes'] ?? [], function ($size) {
+            return !empty($size['name']) && isset($size['price']) && (float)$size['price'] > 0;
+        })),
+        'variants' => array_values(array_filter($body['variants'] ?? [], function ($variant) {
+            return !empty($variant['name']) && (
+                (isset($variant['priceDelta']) && is_numeric($variant['priceDelta'])) ||
+                (isset($variant['price']) && is_numeric($variant['price']))
+            );
+        })),
     ];
     $data['products'][] = $product;
     db_write($data);
@@ -199,7 +208,45 @@ function process_sale(&$data, $payload, $user) {
         }
         if (!$product) return ['error' => "Invalid product: {$item['productId']}"];
         $qty = max(1, (int)($item['qty'] ?? 1));
-        $lineBase = $product['price'] * $qty;
+        $selectedSizeId = $item['sizeId'] ?? null;
+        $selectedVariantId = $item['variantId'] ?? null;
+        $selectedSize = null;
+        $selectedVariant = null;
+        if ($selectedSizeId) {
+            foreach (($product['sizes'] ?? []) as $size) {
+                if (($size['id'] ?? null) === $selectedSizeId) {
+                    $selectedSize = $size;
+                    break;
+                }
+            }
+            if (!$selectedSize) return ['error' => "Invalid size for product: {$item['productId']}"];
+        } elseif (!empty($product['sizes'])) {
+            return ['error' => "Size is required for product: {$item['productId']}"];
+        }
+        if ($selectedVariantId) {
+            foreach (($product['variants'] ?? []) as $variant) {
+                if (($variant['id'] ?? null) === $selectedVariantId) {
+                    $selectedVariant = $variant;
+                    break;
+                }
+            }
+            if (!$selectedVariant) return ['error' => "Invalid variant for product: {$item['productId']}"];
+        }
+
+        $unitPrice = $selectedSize ? (float)($selectedSize['price'] ?? $product['price']) : (float)$product['price'];
+        if ($selectedVariant) {
+            if (isset($selectedVariant['priceDelta']) && is_numeric($selectedVariant['priceDelta'])) {
+                $unitPrice += (float)$selectedVariant['priceDelta'];
+            } elseif (!$selectedSize && isset($selectedVariant['price']) && is_numeric($selectedVariant['price'])) {
+                // Compatibility path for legacy variant-only absolute pricing.
+                $unitPrice = (float)$selectedVariant['price'];
+            }
+        }
+        $nameParts = [];
+        if ($selectedSize && !empty($selectedSize['name'])) $nameParts[] = $selectedSize['name'];
+        if ($selectedVariant && !empty($selectedVariant['name'])) $nameParts[] = $selectedVariant['name'];
+        $displayName = count($nameParts) ? "{$product['name']} (" . implode(' / ', $nameParts) . ")" : $product['name'];
+        $lineBase = $unitPrice * $qty;
         $lineAddon = 0;
         $addOns = $item['addOns'] ?? [];
         foreach ($addOns as $a) $lineAddon += ($a['price'] ?? 0) * $qty;
@@ -208,9 +255,13 @@ function process_sale(&$data, $payload, $user) {
 
         $lineItems[] = [
             'productId' => $product['id'],
-            'productName' => $product['name'],
+            'sizeId' => $selectedSize['id'] ?? null,
+            'sizeName' => $selectedSize['name'] ?? null,
+            'variantId' => $selectedVariant['id'] ?? null,
+            'variantName' => $selectedVariant['name'] ?? null,
+            'productName' => $displayName,
             'qty' => $qty,
-            'unitPrice' => $product['price'],
+            'unitPrice' => $unitPrice,
             'addOns' => $addOns,
             'lineTotal' => $lineBase + $lineAddon,
         ];
